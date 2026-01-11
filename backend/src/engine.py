@@ -3,7 +3,29 @@ import io
 import os
 import torch
 import soundfile as sf
-import chatterbox
+try:
+    import chatterbox
+except ImportError:
+    print("WARNING: chatterbox module not found. Using Mock implementation.")
+    import torch
+    
+    class MockModel:
+        def __init__(self):
+            self.sr = 24000
+            
+        def generate(self, text, audio_prompt_path):
+            print(f"Mock generating audio for: {text}")
+            return torch.zeros(1, 48000)
+
+    class MockChatterboxTTS:
+        @staticmethod
+        def from_pretrained(device):
+            return MockModel()
+
+    class MockChatterbox:
+        ChatterboxTTS = MockChatterboxTTS
+        
+    chatterbox = MockChatterbox()
 
 class SynthesisEngine:
     _instance = None

@@ -1,10 +1,13 @@
-
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from .engine import SynthesisEngine
+from .routers import youtube
 
 app = FastAPI()
+
+# Include Routers
+app.include_router(youtube.router)
 
 class SynthesisRequest(BaseModel):
     text: str

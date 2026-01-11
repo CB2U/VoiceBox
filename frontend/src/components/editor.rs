@@ -1,5 +1,6 @@
 use dioxus::prelude::*;
 use crate::models::character::Character;
+use crate::components::youtube_import::YouTubeImport;
 
 #[component]
 pub fn Editor(
@@ -13,7 +14,7 @@ pub fn Editor(
     rsx! {
         div {
             key: "{char.id}",
-            style: "flex-grow: 1; padding: 20px; display: flex; flex-direction: column; gap: 15px;",
+            style: "flex-grow: 1; padding: 20px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto;",
             
             div {
                 label { "Name" }
@@ -46,7 +47,7 @@ pub fn Editor(
             }
 
             div {
-                label { "Voice Reference" }
+                label { "Voice Reference (File)" }
                 div {
                     style: "display: flex; gap: 10px; align-items: center;",
                     input {
@@ -59,9 +60,7 @@ pub fn Editor(
                             let char = char.clone();
                             move |_| {
                                 let mut c = char.clone();
-                                let on_update = on_update; // Capture copy of EventHandler? EventHandler is Copy/Clone?
-                                // EventHandler is Copy in Dioxus 0.6? Or Clone.
-                                // If it's not Copy, we need to clone it. EventHandler is Copy.
+                                let on_update = on_update; 
                                 spawn(async move {
                                         let path_opt = rfd::AsyncFileDialog::new()
                                         .add_filter("Audio", &["wav", "mp3"])
@@ -77,6 +76,19 @@ pub fn Editor(
                             }
                         },
                         "Select File"
+                    }
+                }
+            }
+            
+            // YouTube Import component
+            YouTubeImport {
+                character_id: char_id.clone(),
+                on_success: {
+                    let char = char.clone();
+                    move |path: String| {
+                        let mut c = char.clone();
+                        c.voice_path = Some(path);
+                        on_update.call(c);
                     }
                 }
             }
