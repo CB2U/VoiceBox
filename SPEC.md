@@ -10,19 +10,18 @@ It points to the spec folder for the current work and links to the product docs.
 - Constitution: constitution.md (or .specify/memory/constitution.md)
 
 ## Current focus
-- Roadmap anchor: (or N/A for unplanned work)
-- Spec folder:
-- Type: Bug | Feature | Change | Chore
-- Priority: P0 | P1 | P2
-- Status: Draft | In progress | Blocked | Done
+- Roadmap anchor: 1.0
+- Spec folder: specs/001-foundation-architecture/
+- Type: Feature
+- Priority: P0
+- Status: In progress
 - Next command:
-  - /specify <anchor or summary>
-  - /implement_from_spec specs/<...>/
+  - /implement_from_spec specs/001-foundation-architecture/
 
 ## Links
-- spec.md:
-- plan.md:
-- tasks.md:
+- spec.md: [spec.md](specs/001-foundation-architecture/spec.md)
+- plan.md: [plan.md](specs/001-foundation-architecture/plan.md)
+- tasks.md: [tasks.md](specs/001-foundation-architecture/tasks.md)
 
 ## Notes
 - Keep this file short. Do not paste large requirements here.
