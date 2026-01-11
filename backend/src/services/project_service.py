@@ -9,10 +9,9 @@ from .settings_service import load_settings, save_settings
 logger = logging.getLogger(__name__)
 
 class ProjectService:
-    def __init__(self, data_dir: str):
-        self.data_dir = data_dir
-        self.projects_dir = os.path.join(data_dir, "projects")
-        self.projects_file = os.path.join(data_dir, "projects.json")
+    def __init__(self, projects_directory: str):
+        self.projects_dir = projects_directory
+        self.projects_file = os.path.join(projects_directory, "projects.json")
         os.makedirs(self.projects_dir, exist_ok=True)
         self._ensure_registry_exists()
 
@@ -81,8 +80,10 @@ class ProjectService:
 
     def migrate_legacy_data(self):
         """Migrate old characters.json and voices to a default project."""
-        legacy_char_file = os.path.join(self.data_dir, "characters.json")
-        legacy_voices_dir = os.path.join(self.data_dir, "voices")
+        # Legacy data would be in the parent directory of projects_dir
+        data_dir = os.path.dirname(self.projects_dir)
+        legacy_char_file = os.path.join(data_dir, "characters.json")
+        legacy_voices_dir = os.path.join(data_dir, "voices")
         
         if os.path.exists(legacy_char_file) or os.path.exists(legacy_voices_dir):
             logger.info("Legacy data found. Starting migration...")

@@ -153,6 +153,59 @@ pub fn SettingsPanel() -> Element {
                 }
             }
             
+            // Projects Directory
+            div {
+                style: "background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);",
+                h3 {
+                    style: "margin-top: 0; color: #333;",
+                    "Project Save Location"
+                }
+                
+                div {
+                    style: "margin-bottom: 20px;",
+                    label {
+                        style: "display: block; font-weight: bold; margin-bottom: 8px; color: #555;",
+                        "Projects Directory"
+                    }
+                    div {
+                        style: "display: flex; gap: 10px;",
+                        input {
+                            value: "{settings().projects_directory}",
+                            oninput: move |e: FormEvent| {
+                                let mut s = settings();
+                                s.projects_directory = e.value();
+                                settings.set(s);
+                                save_status.set(None);
+                            },
+                            style: "flex-grow: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px;",
+                            placeholder: "/path/to/projects"
+                        }
+                        button {
+                            style: "padding: 8px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;",
+                            onclick: move |_| {
+                                let mut s = settings();
+                                spawn(async move {
+                                    if let Some(path) = rfd::AsyncFileDialog::new()
+                                        .set_title("Select Projects Directory")
+                                        .pick_folder()
+                                        .await
+                                    {
+                                        s.projects_directory = path.path().to_string_lossy().to_string();
+                                        settings.set(s);
+                                        save_status.set(None);
+                                    }
+                                });
+                            },
+                            "Browse..."
+                        }
+                    }
+                    p {
+                        style: "margin: 5px 0 0 0; font-size: 12px; color: #666;",
+                        "Where project data (characters, scripts, etc.) will be saved. Each project will be stored in a subfolder."
+                    }
+                }
+            }
+            
             // File Naming Settings (placeholder for future implementation)
             div {
                 style: "background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);",

@@ -6,6 +6,7 @@ class Settings(BaseModel):
     """Application settings for directory configuration."""
     output_directory: str
     voice_files_directory: str
+    projects_directory: str
     active_project_id: Optional[str] = None
     
     @staticmethod
@@ -14,5 +15,6 @@ class Settings(BaseModel):
         return Settings(
             output_directory=os.path.join(project_root, "frontend", "data", "output"),
             voice_files_directory=os.path.join(project_root, "frontend", "data", "voices"),
+            projects_directory=os.path.join(project_root, "frontend", "data", "projects"),
             active_project_id=None
         )

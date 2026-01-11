@@ -1,5 +1,6 @@
 {
   "output_directory": "/mnt/Storage/Music/VoiceBox/OutputFiles",
   "voice_files_directory": "/mnt/Storage/Music/VoiceBox/VoiceRefFiles",
-  "active_project_id": "8578de6a-627b-4a0c-8e3a-ff228ba65e41"
+  "projects_directory": "/mnt/Storage/Music/VoiceBox/Campaigns",
+  "active_project_id": "6e7ead29-ad80-4c1d-91de-04bc088054e4"
 }

@@ -117,3 +117,42 @@ class YouTubeService:
             if task_id and task_id in _progress_tracker and _progress_tracker[task_id] == 100.0:
                 # Keep it for a while? Or let the SSE endpoint clean it up
                 pass
+    
+    @staticmethod
+    def _validate_youtube_url(url: str):
+        """Validate that the URL is a valid YouTube URL."""
+        if not url or not url.strip():
+            raise ValueError("URL cannot be empty")
+        
+        # Basic YouTube URL validation
+        youtube_patterns = [
+            r'(https?://)?(www\.)?youtube\.com/watch\?v=',
+            r'(https?://)?(www\.)?youtu\.be/',
+            r'(https?://)?(www\.)?youtube\.com/embed/'
+        ]
+        
+        if not any(re.search(pattern, url) for pattern in youtube_patterns):
+            raise ValueError("Invalid YouTube URL format")
+    
+    @staticmethod
+    def _validate_time_format(time_str: str, field_name: str):
+        """Validate time format (HH:MM:SS or MM:SS)."""
+        if not time_str or not time_str.strip():
+            raise ValueError(f"{field_name} cannot be empty")
+        
+        # Match HH:MM:SS or MM:SS format
+        if not re.match(r'^\d{1,2}:\d{2}(:\d{2})?$', time_str):
+            raise ValueError(f"{field_name} must be in HH:MM:SS or MM:SS format")
+    
+    @staticmethod
+    def _time_to_seconds(time_str: str) -> int:
+        """Convert time string (HH:MM:SS or MM:SS) to seconds."""
+        parts = time_str.split(':')
+        if len(parts) == 3:
+            hours, minutes, seconds = map(int, parts)
+            return hours * 3600 + minutes * 60 + seconds
+        elif len(parts) == 2:
+            minutes, seconds = map(int, parts)
+            return minutes * 60 + seconds
+        else:
+            raise ValueError(f"Invalid time format: {time_str}")

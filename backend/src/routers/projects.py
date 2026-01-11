@@ -4,13 +4,14 @@ from typing import List
 from fastapi import APIRouter, HTTPException, Depends
 from ..models.project import Project
 from ..services.project_service import ProjectService
-from ..services.settings_service import DATA_DIR
+from ..services.settings_service import load_settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 def get_project_service():
-    return ProjectService(DATA_DIR)
+    settings = load_settings()
+    return ProjectService(settings.projects_directory)
 
 @router.get("/projects", response_model=List[Project])
 def list_projects(service: ProjectService = Depends(get_project_service)):
