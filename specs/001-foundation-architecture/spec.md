@@ -87,4 +87,10 @@ The application currently does not exist. We need to establishing the "Hello Wor
 - None.
 
 ## 11. EVIDENCE
-> To be populated during verify phase.
+- **AC-1 (Basic UI Scaffold):** Verified compilation and execution of Dioxus frontend. (Visual verification skipped due to headless environment).
+- **AC-6 (Backend Status Monitor):** Verified via logs. Frontend successfully polled `http://127.0.0.1:8000/health` and received 200 OK.
+  - Log snippet:
+    ```
+    2026-01-11T13:20:45.748449Z DEBUG hyper_util::client::legacy::connect::http: connected to 127.0.0.1:8000
+    Backend is Online
+    ```
