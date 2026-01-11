@@ -7,3 +7,4 @@ pub mod voice_file_list;
 pub mod settings_panel;
 pub mod project_selector;
 pub mod progress_bar;
+pub mod script_history;

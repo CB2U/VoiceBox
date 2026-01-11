@@ -59,9 +59,16 @@ class SynthesisEngine:
             self._model = ChatterboxTurboTTS.from_pretrained(device)
             print(f"SynthesisEngine initialized. Sample Rate: {self._model.sr}")
 
-    def generate(self, text: str, reference_audio_path: str) -> io.BytesIO:
+    def generate(self, text: str, reference_audio_path: str, cfg_weight: float = 0.5, exaggeration: float = 0.5) -> io.BytesIO:
         """
         Generates audio from text using the reference audio for voice cloning/style.
+        
+        Args:
+            text: The text to synthesize
+            reference_audio_path: Path to the reference audio file
+            cfg_weight: Classifier-free guidance weight (default: 0.5)
+            exaggeration: Exaggeration level for expressive speech (default: 0.5)
+            
         Returns a BytesIO object containing the WAV data.
         """
         if not os.path.exists(reference_audio_path):
@@ -71,7 +78,12 @@ class SynthesisEngine:
         # audio_prompt_path argument maps to reference_audio_path
         # The model returns a tensor of shape (1, samples)
         with torch.no_grad():
-            output_tensor = self._model.generate(text, audio_prompt_path=reference_audio_path)
+            output_tensor = self._model.generate(
+                text, 
+                audio_prompt_path=reference_audio_path,
+                cfg_weight=cfg_weight,
+                exaggeration=exaggeration
+            )
 
         # Convert to numpy and squeeze to (samples,)
         audio_data = output_tensor.squeeze().cpu().numpy()

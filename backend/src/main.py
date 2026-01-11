@@ -3,7 +3,7 @@ from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from .engine import SynthesisEngine
-from .routers import youtube, settings, files, projects, characters
+from .routers import youtube, settings, files, projects, characters, history
 from .services.settings_service import DATA_DIR
 from .services.project_service import ProjectService
 
@@ -29,10 +29,13 @@ app.include_router(settings.router, tags=["settings"])
 app.include_router(files.router, tags=["files"])
 app.include_router(projects.router, tags=["projects"])
 app.include_router(characters.router, tags=["characters"])
+app.include_router(history.router, tags=["history"])
 
 class SynthesisRequest(BaseModel):
     text: str
     reference_audio_path: str
+    cfg_weight: float = 0.5
+    exaggeration: float = 0.5
 
 @app.get("/health")
 def health():
@@ -48,7 +51,12 @@ def synthesize(request: SynthesisRequest):
         
     try:
         engine = SynthesisEngine.get_instance()
-        audio_buffer = engine.generate(request.text, request.reference_audio_path)
+        audio_buffer = engine.generate(
+            request.text, 
+            request.reference_audio_path,
+            cfg_weight=request.cfg_weight,
+            exaggeration=request.exaggeration
+        )
         return StreamingResponse(audio_buffer, media_type="audio/wav")
     except FileNotFoundError as e:
         raise HTTPException(status_code=400, detail=str(e))

@@ -77,6 +77,10 @@ fn app() -> Element {
         let mut chars = characters.write();
         if let Some(idx) = chars.iter().position(|c| c.id == updated_char.id) {
             chars[idx] = updated_char;
+            // Force reactivity by cloning the vector
+            let updated_vec = chars.clone();
+            drop(chars); // Release the write lock
+            characters.set(updated_vec);
         }
     };
 

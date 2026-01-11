@@ -122,6 +122,8 @@ pub async fn backend_save_characters(characters: Vec<Character>) -> Result<(), S
 pub struct SynthesisRequest {
     pub text: String,
     pub reference_audio_path: String,
+    pub cfg_weight: f32,
+    pub exaggeration: f32,
 }
 
 /// Call the backend synthesis API and save the result to a file
@@ -129,11 +131,15 @@ pub async fn synthesize_audio(
     text: String,
     reference_audio_path: String,
     output_path: String,
+    cfg_weight: f32,
+    exaggeration: f32,
 ) -> Result<String, String> {
     let client = reqwest::Client::new();
     let payload = SynthesisRequest {
         text,
         reference_audio_path,
+        cfg_weight,
+        exaggeration,
     };
     
     let response = client

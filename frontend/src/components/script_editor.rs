@@ -7,7 +7,9 @@ use crate::services::api::synthesize_audio;
 use crate::utils::audio::combine_wavs;
 use crate::components::audio_player::AudioPlayer;
 use crate::components::progress_bar::ProgressBar;
+use crate::components::script_history::ScriptHistoryPanel;
 use std::path::PathBuf;
+use std::collections::HashMap;
 use rfd::FileDialog;
 
 #[component]
@@ -18,6 +20,12 @@ pub fn ScriptEditor(characters: Signal<Vec<Character>>) -> Element {
     let mut synthesis_error = use_signal(|| None::<String>);
     let mut current_line_index = use_signal(|| 0usize);
     let mut export_status = use_signal(|| None::<String>);
+    let mut save_history_status = use_signal(|| None::<String>);
+    let mut combined_audio_path = use_signal(|| None::<String>);
+    
+    // Synthesis configuration parameters
+    let mut cfg_weight = use_signal(|| 0.5f32);
+    let mut exaggeration = use_signal(|| 0.5f32);
     
     // Parse script whenever text changes
     let on_script_change = move |e: FormEvent| {
@@ -168,6 +176,8 @@ pub fn ScriptEditor(characters: Signal<Vec<Character>>) -> Element {
                             line.text.clone(),
                             voice_path.clone(),
                             output_path_str.clone(),
+                            cfg_weight(),
+                            exaggeration(),
                         ).await {
                             Ok(path) => {
                                 println!("   ✅ Synthesis successful: {}", path);
@@ -261,12 +271,72 @@ pub fn ScriptEditor(characters: Signal<Vec<Character>>) -> Element {
             match combine_wavs(output_paths, output_path.clone()) {
                 Ok(_) => {
                     export_status.set(Some(format!("Successfully exported to: {}", output_path.display())));
+                    // Store the combined audio path for history saving
+                    combined_audio_path.set(Some(output_path.to_string_lossy().to_string()));
                 }
                 Err(e) => {
                     export_status.set(Some(format!("Export failed: {}", e)));
                 }
             }
         }
+    };
+    
+    // Save to history handler
+    let on_save_to_history = move |_| {
+        save_history_status.set(None);
+        
+        let audio_path = combined_audio_path();
+        if audio_path.is_none() {
+            save_history_status.set(Some("Please export the audio first before saving to history.".to_string()));
+            return;
+        }
+        
+        let script = script_text();
+        if script.is_empty() {
+            save_history_status.set(Some("Script is empty.".to_string()));
+            return;
+        }
+        
+        // Build character mappings from parsed lines
+        let lines = parsed_lines.read();
+        let mut char_mappings = HashMap::new();
+        for line in lines.iter() {
+            if let Some(ref char_id) = line.character_id {
+                char_mappings.insert(line.character_name.clone(), char_id.clone());
+            }
+        }
+        
+        let audio_path_str = audio_path.unwrap();
+        let timestamp = chrono::Local::now().format("%Y-%m-%d %H:%M").to_string();
+        let name = format!("Script - {}", timestamp);
+        
+        spawn(async move {
+            match crate::services::history::save_to_history(
+                name,
+                script,
+                audio_path_str,
+                char_mappings,
+            ).await {
+                Ok(_) => {
+                    save_history_status.set(Some("Successfully saved to history!".to_string()));
+                }
+                Err(e) => {
+                    save_history_status.set(Some(format!("Failed to save to history: {}", e)));
+                }
+            }
+        });
+    };
+    
+    // Load from history handler
+    let on_load_from_history = move |script: String| {
+        script_text.set(script.clone());
+        
+        // Re-parse the loaded script
+        let chars = characters.read();
+        let lines = parse_script(&script, &chars);
+        parsed_lines.set(lines);
+        
+        save_history_status.set(Some("Script loaded from history.".to_string()));
     };
     let lines = parsed_lines.read();
     
@@ -298,6 +368,119 @@ pub fn ScriptEditor(characters: Signal<Vec<Character>>) -> Element {
                         disabled: is_synthesizing(),
                         onclick: on_export,
                         "Export WAV"
+                    }
+                    button {
+                        style: "background-color: #6f42c1; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;",
+                        disabled: is_synthesizing() || combined_audio_path().is_none(),
+                        onclick: on_save_to_history,
+                        "Save to History"
+                    }
+                }
+            }
+            
+            // Synthesis Configuration Controls
+            div {
+                style: "background-color: #fff3e0; padding: 15px; border-radius: 4px; border-left: 4px solid #ff9800;",
+                div {
+                    style: "display: flex; flex-direction: column; gap: 12px;",
+                    p {
+                        style: "margin: 0; font-size: 14px; color: #e65100; font-weight: bold;",
+                        "Synthesis Configuration"
+                    }
+                    
+                    // CFG Weight Control
+                    div {
+                        style: "display: flex; flex-direction: column; gap: 5px;",
+                        div {
+                            style: "display: flex; justify-content: space-between; align-items: center;",
+                            label {
+                                style: "font-size: 13px; color: #e65100; font-weight: 500;",
+                                "CFG Weight"
+                            }
+                            span {
+                                style: "font-size: 12px; color: #f57c00; font-family: monospace;",
+                                "{cfg_weight():.2}"
+                            }
+                        }
+                        input {
+                            r#type: "range",
+                            min: "0",
+                            max: "1",
+                            step: "0.1",
+                            value: "{cfg_weight()}",
+                            style: "width: 100%;",
+                            oninput: move |e| {
+                                if let Ok(val) = e.value().parse::<f32>() {
+                                    cfg_weight.set(val);
+                                }
+                            },
+                        }
+                        p {
+                            style: "margin: 0; font-size: 11px; color: #f57c00; font-style: italic;",
+                            "💡 Lower (~0.3) for fast speakers or expressive speech. Default: 0.5"
+                        }
+                    }
+                    
+                    // Exaggeration Control
+                    div {
+                        style: "display: flex; flex-direction: column; gap: 5px;",
+                        div {
+                            style: "display: flex; justify-content: space-between; align-items: center;",
+                            label {
+                                style: "font-size: 13px; color: #e65100; font-weight: 500;",
+                                "Exaggeration"
+                            }
+                            span {
+                                style: "font-size: 12px; color: #f57c00; font-family: monospace;",
+                                "{exaggeration():.2}"
+                            }
+                        }
+                        input {
+                            r#type: "range",
+                            min: "0",
+                            max: "1",
+                            step: "0.1",
+                            value: "{exaggeration()}",
+                            style: "width: 100%;",
+                            oninput: move |e| {
+                                if let Ok(val) = e.value().parse::<f32>() {
+                                    exaggeration.set(val);
+                                }
+                            },
+                        }
+                        p {
+                            style: "margin: 0; font-size: 11px; color: #f57c00; font-style: italic;",
+                            "💡 Higher (~0.7+) for dramatic/expressive speech. Default: 0.5"
+                        }
+                    }
+                    
+                    // Preset Buttons
+                    div {
+                        style: "display: flex; gap: 8px; margin-top: 5px;",
+                        button {
+                            style: "background-color: #ffe0b2; color: #e65100; padding: 4px 12px; border-radius: 4px; font-size: 11px; border: 1px solid #ffb74d; cursor: pointer;",
+                            onclick: move |_| {
+                                cfg_weight.set(0.5);
+                                exaggeration.set(0.5);
+                            },
+                            "Default (0.5, 0.5)"
+                        }
+                        button {
+                            style: "background-color: #ffe0b2; color: #e65100; padding: 4px 12px; border-radius: 4px; font-size: 11px; border: 1px solid #ffb74d; cursor: pointer;",
+                            onclick: move |_| {
+                                cfg_weight.set(0.3);
+                                exaggeration.set(0.5);
+                            },
+                            "Fast Speaker (0.3, 0.5)"
+                        }
+                        button {
+                            style: "background-color: #ffe0b2; color: #e65100; padding: 4px 12px; border-radius: 4px; font-size: 11px; border: 1px solid #ffb74d; cursor: pointer;",
+                            onclick: move |_| {
+                                cfg_weight.set(0.3);
+                                exaggeration.set(0.7);
+                            },
+                            "Expressive (0.3, 0.7)"
+                        }
                     }
                 }
             }
@@ -419,6 +602,14 @@ pub fn ScriptEditor(characters: Signal<Vec<Character>>) -> Element {
                 }
             }
             
+            // Save to History Status Display
+            if let Some(status) = save_history_status() {
+                div {
+                    style: if status.contains("Success") { "background-color: #d4edda; padding: 12px; border-radius: 4px; border-left: 4px solid #28a745; color: #155724;" } else { "background-color: #f8d7da; padding: 12px; border-radius: 4px; border-left: 4px solid #dc3545; color: #721c24;" },
+                    "{status}"
+                }
+            }
+            
             // Progress Indicator
             if is_synthesizing() {
                 {
@@ -526,6 +717,11 @@ pub fn ScriptEditor(characters: Signal<Vec<Character>>) -> Element {
                         }
                     }
                 }
+            }
+            
+            // Script History Panel
+            ScriptHistoryPanel {
+                on_load_script: on_load_from_history
             }
         }
     }

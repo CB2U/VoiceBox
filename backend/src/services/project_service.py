@@ -51,6 +51,12 @@ class ProjectService:
         if not os.path.exists(char_file):
             with open(char_file, 'w') as f:
                 json.dump([], f)
+        
+        # Initialize project-specific history file
+        history_file = os.path.join(project_dir, "history.json")
+        if not os.path.exists(history_file):
+            with open(history_file, 'w') as f:
+                json.dump([], f)
                 
         return p
 
