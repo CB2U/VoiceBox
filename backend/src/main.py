@@ -1,20 +1,32 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from .engine import SynthesisEngine
-from .routers import youtube
+from .routers import youtube, settings, files
 
 app = FastAPI()
 
+# CORS middleware for audio file serving and frontend access
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, specify exact origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Include Routers
-app.include_router(youtube.router)
+app.include_router(youtube.router, tags=["youtube"])
+app.include_router(settings.router, tags=["settings"])
+app.include_router(files.router, tags=["files"])
 
 class SynthesisRequest(BaseModel):
     text: str
     reference_audio_path: str
 
 @app.get("/health")
-def health_check():
+def health():
     return {
         "status": "ok",
         "version": "0.1.0"

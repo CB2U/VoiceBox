@@ -1,14 +1,8 @@
 [
   {
-    "id": "93abf3bc-bf56-40b7-b9ff-0015aedf772e",
-    "name": "Bob",
-    "description": "aesome",
-    "voice_path": "/mnt/Storage/Downloads/audio.wav"
-  },
-  {
     "id": "46e6590c-7860-4cb4-ab0f-ab1bbdffd6d4",
     "name": "Gandalf",
     "description": "",
-    "voice_path": null
+    "voice_path": "/mnt/Storage/Music/VoiceBox/VoiceRefFiles/Gandalf.wav"
   }
 ]

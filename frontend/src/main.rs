@@ -8,12 +8,13 @@ mod utils;
 use models::character::Character;
 use services::persistence::{load_characters, save_characters};
 use services::api::check_backend_health;
-use components::{sidebar::Sidebar, editor::Editor, script_editor::ScriptEditor};
+use components::{sidebar::Sidebar, editor::Editor, script_editor::ScriptEditor, settings_panel::SettingsPanel};
 
 #[derive(Clone, Copy, PartialEq)]
 enum Tab {
     Characters,
     ScriptEditor,
+    Settings,
 }
 
 fn main() {
@@ -79,11 +80,14 @@ fn app() -> Element {
     let current_tab = active_tab();
     let is_characters_tab = current_tab == Tab::Characters;
     let is_script_tab = current_tab == Tab::ScriptEditor;
+    let is_settings_tab = current_tab == Tab::Settings;
     
     let char_tab_bg = if is_characters_tab { "#34495e" } else { "#2c3e50" };
     let char_tab_border = if is_characters_tab { "3px solid #3498db" } else { "none" };
     let script_tab_bg = if is_script_tab { "#34495e" } else { "#2c3e50" };
     let script_tab_border = if is_script_tab { "3px solid #3498db" } else { "none" };
+    let settings_tab_bg = if is_settings_tab { "#34495e" } else { "#2c3e50" };
+    let settings_tab_border = if is_settings_tab { "3px solid #3498db" } else { "none" };
 
     // Backend status display
     let (status_text, status_color, status_bg) = match backend_status() {
@@ -108,6 +112,11 @@ fn app() -> Element {
                     style: "flex: 1; padding: 15px; border: none; background-color: {script_tab_bg}; color: white; cursor: pointer; font-size: 16px; border-bottom: {script_tab_border};",
                     onclick: move |_| active_tab.set(Tab::ScriptEditor),
                     "Script Editor"
+                }
+                button {
+                    style: "flex: 1; padding: 15px; border: none; background-color: {settings_tab_bg}; color: white; cursor: pointer; font-size: 16px; border-bottom: {settings_tab_border};",
+                    onclick: move |_| active_tab.set(Tab::Settings),
+                    "Settings"
                 }
                 div {
                     style: "padding: 8px 16px; margin: 8px 16px; background-color: {status_bg}; color: {status_color}; border-radius: 4px; font-size: 12px; font-weight: bold; white-space: nowrap;",
@@ -144,6 +153,10 @@ fn app() -> Element {
                     ScriptEditor {
                         characters: characters,
                     }
+                }
+                
+                if is_settings_tab {
+                    SettingsPanel {}
                 }
             }
         }

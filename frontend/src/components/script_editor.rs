@@ -4,6 +4,7 @@ use crate::models::script::{ScriptLine, SynthesisStatus};
 use crate::services::script_parser::parse_script;
 use crate::services::api::synthesize_audio;
 use crate::utils::audio::combine_wavs;
+use crate::components::audio_player::AudioPlayer;
 use std::path::PathBuf;
 use rfd::FileDialog;
 
@@ -78,8 +79,44 @@ pub fn ScriptEditor(characters: Signal<Vec<Character>>) -> Element {
         spawn(async move {
             println!("🚀 Async synthesis task started");
             
-            // Create output directory
-            let output_dir = PathBuf::from("frontend/data/synthesis");
+            // Load settings to get output directory
+            let output_dir = match reqwest::Client::new()
+                .get("http://localhost:8000/settings")
+                .send()
+                .await
+            {
+                Ok(resp) => {
+                    if resp.status().is_success() {
+                        match resp.json::<crate::models::settings::Settings>().await {
+                            Ok(settings) => {
+                                println!("📁 Using output directory from settings: {}", settings.output_directory);
+                                std::path::PathBuf::from(settings.output_directory)
+                            }
+                            Err(e) => {
+                                let error_msg = format!("Failed to parse settings: {}", e);
+                                println!("❌ {}", error_msg);
+                                synthesis_error.set(Some(error_msg));
+                                is_synthesizing.set(false);
+                                return;
+                            }
+                        }
+                    } else {
+                        let error_msg = format!("Failed to load settings: {}", resp.status());
+                        println!("❌ {}", error_msg);
+                        synthesis_error.set(Some(error_msg));
+                        is_synthesizing.set(false);
+                        return;
+                    }
+                }
+                Err(e) => {
+                    let error_msg = format!("Failed to connect to settings API: {}", e);
+                    println!("❌ {}", error_msg);
+                    synthesis_error.set(Some(error_msg));
+                    is_synthesizing.set(false);
+                    return;
+                }
+            };
+            
             println!("📁 Creating output directory: {}", output_dir.display());
             
             if let Err(e) = std::fs::create_dir_all(&output_dir) {
@@ -348,13 +385,29 @@ pub fn ScriptEditor(characters: Signal<Vec<Character>>) -> Element {
                                                     "{line.text}"
                                                 }
                                             }
-                                            if is_unknown {
-                                                span {
-                                                    style: "font-size: 12px; color: #dc3545; font-style: italic;",
-                                                    "⚠ Unknown character"
-                                                }
-                                            }
-                                        }
+                                             if is_unknown {
+                                                 span {
+                                                     style: "font-size: 12px; color: #dc3545; font-style: italic;",
+                                                     "⚠ Unknown character"
+                                                 }
+                                             } else if matches!(line.status, SynthesisStatus::Done) {
+                                                 span {
+                                                     style: "font-size: 12px; color: #28a745;",
+                                                     "{get_status_icon(&line.status)} Done"
+                                                 }
+                                             }
+                                         }
+                                         // Show audio player for completed lines
+                                         if let SynthesisStatus::Done = line.status {
+                                             if let Some(ref output_path) = line.output_path {
+                                                 div {
+                                                     style: "margin-top: 8px;",
+                                                     AudioPlayer {
+                                                         audio_url: format!("http://localhost:8000/files/audio/{}", urlencoding::encode(output_path))
+                                                     }
+                                                 }
+                                             }
+                                         }
                                     }
                                 }
                             }

@@ -15,6 +15,11 @@ struct AudioFileResponse {
     filename: String,
 }
 
+#[derive(Deserialize)]
+struct ErrorResponse {
+    detail: String,
+}
+
 #[component]
 pub fn YouTubeImport(
     character_id: String,
@@ -39,7 +44,10 @@ pub fn YouTubeImport(
                 label { style: "font-weight: bold; font-size: 0.9em;", "Video URL" }
                 input {
                     value: "{url}",
-                    oninput: move |e: FormEvent| url.set(e.value()),
+                    oninput: move |e: FormEvent| {
+                        url.set(e.value());
+                        error_msg.set(None); // Clear error when user types
+                    },
                     placeholder: "https://youtube.com/watch?v=...",
                     style: "padding: 5px;"
                 }
@@ -52,7 +60,10 @@ pub fn YouTubeImport(
                     label { style: "display: block; font-weight: bold; font-size: 0.9em;", "Start Time" }
                     input {
                         value: "{start_time}",
-                        oninput: move |e: FormEvent| start_time.set(e.value()),
+                        oninput: move |e: FormEvent| {
+                            start_time.set(e.value());
+                            error_msg.set(None);
+                        },
                         placeholder: "00:00:10",
                         style: "width: 100%; padding: 5px;"
                     }
@@ -62,7 +73,10 @@ pub fn YouTubeImport(
                     label { style: "display: block; font-weight: bold; font-size: 0.9em;", "End Time" }
                     input {
                         value: "{end_time}",
-                        oninput: move |e: FormEvent| end_time.set(e.value()),
+                        oninput: move |e: FormEvent| {
+                            end_time.set(e.value());
+                            error_msg.set(None);
+                        },
                         placeholder: "00:00:15",
                         style: "width: 100%; padding: 5px;"
                     }
@@ -71,24 +85,41 @@ pub fn YouTubeImport(
             
             if let Some(msg) = error_msg() {
                 div { 
-                    style: "color: red; margin-bottom: 10px; font-size: 0.9em;",
+                    style: "color: #d32f2f; background-color: #ffebee; padding: 8px; margin-bottom: 10px; font-size: 0.9em; border-radius: 4px; border-left: 4px solid #d32f2f;",
                     "{msg}" 
                 }
             }
             
             button {
-                disabled: "{is_loading}",
-                style: "background-color: #007bff; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%;",
+                disabled: is_loading(),
+                style: if is_loading() {
+                    "background-color: #999; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: not-allowed; width: 100%;"
+                } else {
+                    "background-color: #007bff; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%;"
+                },
                 onclick: move |_| {
-                    if url().is_empty() || start_time().is_empty() || end_time().is_empty() {
-                        error_msg.set(Some("Please fill all fields".to_string()));
+                    // Client-side validation
+                    let url_val = url().trim().to_string();
+                    let start_val = start_time().trim().to_string();
+                    let end_val = end_time().trim().to_string();
+                    
+                    if url_val.is_empty() || start_val.is_empty() || end_val.is_empty() {
+                        error_msg.set(Some("Please fill in all fields".to_string()));
+                        return;
+                    }
+                    
+                    // Basic URL validation
+                    if !url_val.starts_with("http://") && !url_val.starts_with("https://") {
+                        error_msg.set(Some("Please enter a valid URL starting with http:// or https://".to_string()));
+                        return;
+                    }
+                    
+                    if !url_val.contains("youtube.com") && !url_val.contains("youtu.be") {
+                        error_msg.set(Some("Please enter a valid YouTube URL".to_string()));
                         return;
                     }
                     
                     let c_id = character_id.clone();
-                    let req_url = url();
-                    let req_start = start_time();
-                    let req_end = end_time();
 
                     spawn(async move {
                         is_loading.set(true);
@@ -96,9 +127,9 @@ pub fn YouTubeImport(
                         
                         let client = reqwest::Client::new();
                         let payload = YouTubeRequest {
-                            url: req_url,
-                            start_time: req_start,
-                            end_time: req_end,
+                            url: url_val,
+                            start_time: start_val,
+                            end_time: end_val,
                             character_id: c_id,
                         };
                         
@@ -107,25 +138,45 @@ pub fn YouTubeImport(
                             .send()
                             .await {
                                 Ok(resp) => {
-                                    if resp.status().is_success() {
+                                    let status = resp.status();
+                                    
+                                    if status.is_success() {
+                                        // Success - parse the response
                                         match resp.json::<AudioFileResponse>().await {
                                             Ok(data) => {
                                                 is_loading.set(false);
-                                                // Clear inputs on success? Maybe not, allow tweaking.
                                                 on_success.call(data.file_path);
                                             },
-                                            Err(_) => {
-                                                error_msg.set(Some("Failed to parse response".to_string()));
+                                            Err(e) => {
+                                                error_msg.set(Some(format!("Failed to parse response: {}", e)));
                                                 is_loading.set(false);
                                             }
                                         }
                                     } else {
-                                        error_msg.set(Some(format!("Server error: {}", resp.status())));
+                                        // Error - try to extract error message from response body
+                                        match resp.json::<ErrorResponse>().await {
+                                            Ok(err_data) => {
+                                                error_msg.set(Some(err_data.detail));
+                                            },
+                                            Err(_) => {
+                                                // Fallback if we can't parse the error response
+                                                error_msg.set(Some(format!("Server error ({})", status)));
+                                            }
+                                        }
                                         is_loading.set(false);
                                     }
                                 }
                                 Err(e) => {
-                                    error_msg.set(Some(format!("Request failed: {}", e)));
+                                    // Network error or connection refused
+                                    let err_message = if e.is_connect() {
+                                        "Cannot connect to server. Please make sure the backend is running.".to_string()
+                                    } else if e.is_timeout() {
+                                        "Request timed out. Please try again.".to_string()
+                                    } else {
+                                        format!("Network error: {}", e)
+                                    };
+                                    
+                                    error_msg.set(Some(err_message));
                                     is_loading.set(false);
                                 }
                             }

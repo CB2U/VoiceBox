@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
 use crate::models::character::Character;
 use crate::components::youtube_import::YouTubeImport;
+use crate::components::voice_file_list::VoiceFileList;
 
 #[component]
 pub fn Editor(
@@ -84,6 +85,19 @@ pub fn Editor(
             YouTubeImport {
                 character_id: char_id.clone(),
                 on_success: {
+                    let char = char.clone();
+                    move |path: String| {
+                        let mut c = char.clone();
+                        c.voice_path = Some(path);
+                        on_update.call(c);
+                    }
+                }
+            }
+            
+            // Voice File List component
+            VoiceFileList {
+                character_id: char_id.clone(),
+                on_file_selected: {
                     let char = char.clone();
                     move |path: String| {
                         let mut c = char.clone();

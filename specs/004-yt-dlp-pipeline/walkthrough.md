@@ -41,3 +41,38 @@ curl -X POST http://localhost:8000/extract-from-youtube \
 
 ### Frontend Verification
 *   **Compilation**: `cargo check` passed successfully.
+
+## Error Handling Improvements (2026-01-11)
+
+### Changes Made
+
+**Backend Enhancements:**
+- Added URL validation with regex patterns for YouTube URLs
+- Added time format validation (supports HH:MM:SS, MM:SS, or seconds)
+- Added time range validation (start < end)
+- Implemented detailed logging throughout extraction process
+- Enhanced error messages with specific guidance for common failures
+- Added 2-minute timeout for downloads
+- Return HTTP 400 for validation errors, HTTP 500 for server errors
+
+**Frontend Enhancements:**
+- Extract and display error details from HTTP response body
+- Added client-side URL and field validation
+- Improved error message styling with red background
+- Clear errors when user starts typing
+- Ensure loading state always clears on error
+- Better network error messages
+
+### Verification
+
+All error scenarios tested successfully:
+- ✅ Valid YouTube URL extracts correctly
+- ✅ Invalid video ID returns clear error message
+- ✅ Non-YouTube URL rejected with validation error
+- ✅ Invalid time range (start > end) caught and reported
+- ✅ Malformed URLs caught by client-side validation
+- ✅ Empty fields validated before submission
+- ✅ Backend offline shows connection error
+
+**User Impact:** Users now receive immediate, actionable feedback instead of UI getting stuck in "Extracting..." state.
+
