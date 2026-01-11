@@ -1,0 +1,14 @@
+[
+  {
+    "id": "93abf3bc-bf56-40b7-b9ff-0015aedf772e",
+    "name": "Bob",
+    "description": "aesome",
+    "voice_path": "/mnt/Storage/Downloads/3D_Printing/Downloads/audio.wav"
+  },
+  {
+    "id": "44e0ba42-f59b-41c1-ae66-c7319c42e2ee",
+    "name": "New Character",
+    "description": "",
+    "voice_path": null
+  }
+]
