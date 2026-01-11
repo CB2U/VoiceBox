@@ -3,6 +3,6 @@
     "id": "46e6590c-7860-4cb4-ab0f-ab1bbdffd6d4",
     "name": "Gandalf",
     "description": "",
-    "voice_path": "/mnt/Storage/Music/VoiceBox/VoiceRefFiles/Gandalf.wav"
+    "voice_reference_path": ""
   }
 ]

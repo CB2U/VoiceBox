@@ -6,9 +6,8 @@ mod components;
 mod utils;
 
 use models::character::Character;
-use services::persistence::{load_characters, save_characters};
-use services::api::check_backend_health;
-use components::{sidebar::Sidebar, editor::Editor, script_editor::ScriptEditor, settings_panel::SettingsPanel};
+use services::api::{check_backend_health, fetch_characters, backend_save_characters};
+use components::{sidebar::Sidebar, editor::Editor, script_editor::ScriptEditor, settings_panel::SettingsPanel, project_selector::ProjectSelector};
 
 #[derive(Clone, Copy, PartialEq)]
 enum Tab {
@@ -23,27 +22,46 @@ fn main() {
 
 fn app() -> Element {
     // State
-    let mut characters = use_signal(|| load_characters());
+    let mut characters = use_signal(|| Vec::<Character>::new());
     let mut selected_id = use_signal(|| None::<String>);
     let mut active_tab = use_signal(|| Tab::Characters);
     let mut backend_status = use_signal(|| None::<bool>); // None = checking, Some(true) = online, Some(false) = offline
+    let mut refresh_trigger = use_signal(|| 0);
+
+    // Fetch characters on startup and when project changes
+    use_effect(move || {
+        let _ = refresh_trigger();
+        spawn(async move {
+            if let Ok(chars) = fetch_characters().await {
+                characters.set(chars);
+            }
+        });
+    });
 
     // Check backend health on startup and periodically
     use_effect(move || {
         spawn(async move {
             loop {
                 let is_healthy = check_backend_health().await;
-                backend_status.set(Some(is_healthy));
+                if backend_status.read().is_none() || backend_status.read().unwrap() != is_healthy {
+                    backend_status.set(Some(is_healthy));
+                    // Trigger refresh when backend comes online
+                    if is_healthy {
+                        refresh_trigger.set(refresh_trigger() + 1);
+                    }
+                }
                 tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
             }
         });
     });
 
-    // Autosave effect
+    // Backend Save effect (throttled by Dioxus use_effect behavior)
     use_effect(move || {
-        let chars = characters.read();
-        if let Err(e) = save_characters(&chars) {
-            println!("Error saving characters: {}", e);
+        let chars = characters.read().clone();
+        if !chars.is_empty() {
+            spawn(async move {
+                let _ = backend_save_characters(chars).await;
+            });
         }
     });
 
@@ -100,6 +118,14 @@ fn app() -> Element {
         div {
             style: "display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden; font-family: sans-serif;",
             
+            // Header with Project Selector
+            ProjectSelector {
+                on_project_changed: move |_| {
+                    refresh_trigger.set(refresh_trigger() + 1);
+                    selected_id.set(None);
+                }
+            }
+
             // Tab Navigation with Backend Status
             div {
                 style: "display: flex; background-color: #2c3e50; color: white; padding: 0; align-items: center;",

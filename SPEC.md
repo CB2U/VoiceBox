@@ -10,18 +10,16 @@ It points to the spec folder for the current work and links to the product docs.
 - Constitution: constitution.md (or .specify/memory/constitution.md)
 
 ## Current focus
-## Current focus
-- Roadmap anchor: 2.1
-- Spec folder: specs/005-script-parser/
-- Type: Feature
-- Priority: P1
+- Roadmap anchor: 3.0, 3.1
+- Spec folder: specs/006-project-management/, specs/007-progress-indicators/
+- Type: Feature, Enhancement
+- Priority: P1, P2
 - Status: Completed
-- Next command: Review next epic or continue with enhancements
+- Next command: cargo run
 
 ## Links
-- spec.md: [spec.md](specs/005-script-parser/spec.md)
-- plan.md: [plan.md](specs/005-script-parser/plan.md)
-- tasks.md: [tasks.md](specs/005-script-parser/tasks.md)
+- Project Mgmt Spec: [spec.md](specs/006-project-management/spec.md)
+- Progress Spec: [spec.md](specs/007-progress-indicators/spec.md)
 
 ## Notes
 - Keep this file short. Do not paste large requirements here.

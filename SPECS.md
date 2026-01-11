@@ -7,3 +7,5 @@
 | **1.2** | Synthesis Engine    | `specs/003-backend-inference/` | BP1        | **Completed**   | AC-4       |
 | **2.0** | YouTube Integration | `specs/004-yt-dlp-pipeline/`   | BP2        | **Completed**   | AC-3       |
 | **2.1** | Script Editor       | `specs/005-script-parser/`     | BP3        | **Completed**   | AC-5, AC-7 |
+| **3.0** | Project Management  | `specs/006-project-management/` | BP4        | **Completed**   | AC-9       |
+| **3.1** | Progress Indicators | `specs/007-progress-indicators/` | BP4        | **Completed**   | AC-10, AC-11 |

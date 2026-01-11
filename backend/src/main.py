@@ -3,9 +3,16 @@ from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from .engine import SynthesisEngine
-from .routers import youtube, settings, files
+from .routers import youtube, settings, files, projects, characters
+from .services.settings_service import DATA_DIR
+from .services.project_service import ProjectService
 
 app = FastAPI()
+
+# Perform migration and ensure active project on startup
+project_service = ProjectService(DATA_DIR)
+project_service.migrate_legacy_data()
+project_service.ensure_active_project()
 
 # CORS middleware for audio file serving and frontend access
 app.add_middleware(
@@ -20,6 +27,8 @@ app.add_middleware(
 app.include_router(youtube.router, tags=["youtube"])
 app.include_router(settings.router, tags=["settings"])
 app.include_router(files.router, tags=["files"])
+app.include_router(projects.router, tags=["projects"])
+app.include_router(characters.router, tags=["characters"])
 
 class SynthesisRequest(BaseModel):
     text: str

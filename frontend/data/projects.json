@@ -1,0 +1,62 @@
+[
+  {
+    "id": "011ce51b-fc9f-485c-a6cf-f68d9ad46d8d",
+    "name": "Default Project",
+    "base_path": "/mnt/Storage/Documents/Projects/VoiceBox/frontend/data/projects/011ce51b-fc9f-485c-a6cf-f68d9ad46d8d",
+    "created_at": "2026-01-11 11:21:18.674721"
+  },
+  {
+    "id": "73d50502-5a88-4ed0-948b-5da02f956d09",
+    "name": "EveOfRuin",
+    "base_path": "/mnt/Storage/Documents/Projects/VoiceBox/frontend/data/projects/73d50502-5a88-4ed0-948b-5da02f956d09",
+    "created_at": "2026-01-11 11:56:01.559791"
+  },
+  {
+    "id": "ff271f99-c888-4914-a90b-87aca96608c1",
+    "name": "EveOfRuin",
+    "base_path": "/mnt/Storage/Documents/Projects/VoiceBox/frontend/data/projects/ff271f99-c888-4914-a90b-87aca96608c1",
+    "created_at": "2026-01-11 11:56:02.378016"
+  },
+  {
+    "id": "123d82c1-5207-4fe1-9138-f0ac61d7e302",
+    "name": "EveOfRuin",
+    "base_path": "/mnt/Storage/Documents/Projects/VoiceBox/frontend/data/projects/123d82c1-5207-4fe1-9138-f0ac61d7e302",
+    "created_at": "2026-01-11 11:56:02.552585"
+  },
+  {
+    "id": "c7aae37c-62dd-43f6-a218-f9e69acbc109",
+    "name": "EveOfRuin",
+    "base_path": "/mnt/Storage/Documents/Projects/VoiceBox/frontend/data/projects/c7aae37c-62dd-43f6-a218-f9e69acbc109",
+    "created_at": "2026-01-11 11:56:02.736578"
+  },
+  {
+    "id": "e82d801a-bcfe-4c61-a9ed-1c3cf5981c27",
+    "name": "TestProject",
+    "base_path": "/mnt/Storage/Documents/Projects/VoiceBox/frontend/data/projects/e82d801a-bcfe-4c61-a9ed-1c3cf5981c27",
+    "created_at": "2026-01-11 11:56:55.167389"
+  },
+  {
+    "id": "470d2cb6-c32d-4763-be53-0e21ab986dc4",
+    "name": "EveOfRuin",
+    "base_path": "/mnt/Storage/Documents/Projects/VoiceBox/frontend/data/projects/470d2cb6-c32d-4763-be53-0e21ab986dc4",
+    "created_at": "2026-01-11 18:00:23.136142+00:00"
+  },
+  {
+    "id": "6a8c131c-7b60-4968-b925-6c9ccd2dfa6f",
+    "name": "EveOfRuin",
+    "base_path": "/mnt/Storage/Documents/Projects/VoiceBox/frontend/data/projects/6a8c131c-7b60-4968-b925-6c9ccd2dfa6f",
+    "created_at": "2026-01-11 18:10:45.246473+00:00"
+  },
+  {
+    "id": "752774d5-cb89-4eda-8e95-3dce3ac11834",
+    "name": "EveOfRuin",
+    "base_path": "/mnt/Storage/Documents/Projects/VoiceBox/frontend/data/projects/752774d5-cb89-4eda-8e95-3dce3ac11834",
+    "created_at": "2026-01-11 19:13:10.797868+00:00"
+  },
+  {
+    "id": "8578de6a-627b-4a0c-8e3a-ff228ba65e41",
+    "name": "EveOfRuin",
+    "base_path": "/mnt/Storage/Documents/Projects/VoiceBox/frontend/data/projects/8578de6a-627b-4a0c-8e3a-ff228ba65e41",
+    "created_at": "2026-01-11 19:50:47.242587+00:00"
+  }
+]

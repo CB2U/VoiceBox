@@ -1,10 +1,12 @@
 use dioxus::prelude::*;
+use dioxus::document::eval; // Use eval from document module for 0.6
 use crate::models::character::Character;
 use crate::models::script::{ScriptLine, SynthesisStatus};
 use crate::services::script_parser::parse_script;
 use crate::services::api::synthesize_audio;
 use crate::utils::audio::combine_wavs;
 use crate::components::audio_player::AudioPlayer;
+use crate::components::progress_bar::ProgressBar;
 use std::path::PathBuf;
 use rfd::FileDialog;
 
@@ -314,6 +316,92 @@ pub fn ScriptEditor(characters: Signal<Vec<Character>>) -> Element {
                 }
             }
             
+            // Paralinguistic Tags Guide
+            div {
+                style: "background-color: #f3e5f5; padding: 12px; border-radius: 4px; border-left: 4px solid #9c27b0;",
+                div {
+                    style: "display: flex; flex-direction: column; gap: 5px;",
+                    p {
+                        style: "margin: 0; font-size: 14px; color: #7b1fa2; font-weight: bold;",
+                        "Paralinguistic Tags (Click to insert):"
+                    }
+                    div {
+                        style: "display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px;",
+                        for tag in ["[clear throat]", "[sigh]", "[shush]", "[cough]", "[groan]", "[sniff]", "[gasp]", "[chuckle]", "[laugh]"] {
+                            button {
+                                style: "background-color: #e1bee7; color: #4a148c; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-family: monospace; border: 1px solid #ce93d8; cursor: pointer; transition: background-color 0.2s;",
+                                onclick: {
+                                    let t = tag;
+                                    move |_| {
+                                        let mut eval_js = eval(
+                                            r#"
+                                            (async () => {
+                                                let textarea = document.getElementById('script-textarea');
+                                                let start = textarea.selectionStart;
+                                                let end = textarea.selectionEnd;
+                                                let text = textarea.value;
+                                                let insertion = await dioxus.recv();
+                                                textarea.value = text.substring(0, start) + insertion + text.substring(end);
+                                                textarea.selectionStart = textarea.selectionEnd = start + insertion.length;
+                                                textarea.focus();
+                                                // Trigger Dioxus oninput
+                                                textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                                            })();
+                                            "#
+                                        );
+                                        eval_js.send(serde_json::Value::String(t.to_string())).unwrap();
+                                    }
+                                },
+                                "{tag}"
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Character Names Shortcuts
+            div {
+                style: "background-color: #e8f5e9; padding: 12px; border-radius: 4px; border-left: 4px solid #4caf50;",
+                div {
+                    style: "display: flex; flex-direction: column; gap: 5px;",
+                    p {
+                        style: "margin: 0; font-size: 14px; color: #2e7d32; font-weight: bold;",
+                        "Character Shortcuts (Click to insert):"
+                    }
+                    div {
+                        style: "display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px;",
+                        for char in characters.read().iter() {
+                            button {
+                                style: "background-color: #c8e6c9; color: #1b5e20; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-family: bold; border: 1px solid #a5d6a7; cursor: pointer;",
+                                onclick: {
+                                    let name = char.name.clone();
+                                    move |_| {
+                                        let insertion = format!("[{}]: ", name);
+                                        let mut eval_js = eval(
+                                            r#"
+                                            (async () => {
+                                                let textarea = document.getElementById('script-textarea');
+                                                let start = textarea.selectionStart;
+                                                let end = textarea.selectionEnd;
+                                                let text = textarea.value;
+                                                let insertion = await dioxus.recv();
+                                                textarea.value = text.substring(0, start) + insertion + text.substring(end);
+                                                textarea.selectionStart = textarea.selectionEnd = start + insertion.length;
+                                                textarea.focus();
+                                                textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                                            })();
+                                            "#
+                                        );
+                                        eval_js.send(serde_json::Value::String(insertion)).unwrap();
+                                    }
+                                },
+                                "[{char.name}]"
+                            }
+                        }
+                    }
+                }
+            }
+            
             // Error Display
             if let Some(error) = synthesis_error() {
                 div {
@@ -333,9 +421,32 @@ pub fn ScriptEditor(characters: Signal<Vec<Character>>) -> Element {
             
             // Progress Indicator
             if is_synthesizing() {
-                div {
-                    style: "background-color: #fff3cd; padding: 12px; border-radius: 4px; border-left: 4px solid #ffc107; color: #856404;",
-                    "Synthesizing line {current_line_index() + 1} of {parsed_lines.read().len()}..."
+                {
+                    let total = parsed_lines.read().len();
+                    // Fix: If total is 0, avoid division by zero
+                    if total > 0 {
+                        // Current line is 0-indexed, so current working line is index + 0.5?
+                        // Or just show progress as completed lines / total
+                        let completed = parsed_lines.read().iter().filter(|l| matches!(l.status, SynthesisStatus::Done)).count();
+                        let current_idx = current_line_index();
+                        
+                        // We show progress based on:
+                        // 1. Completed lines (solid steps)
+                        // 2. The fact that one is currently processing
+                        let prog = (completed as f64 / total as f64) * 100.0;
+                        
+                        let label = if completed == total { 
+                            "All lines synthesized! Combining...".to_string() 
+                        } else { 
+                            format!("Synthesizing line {} of {}...", current_idx + 1, total) 
+                        };
+                        
+                        rsx! {
+                            ProgressBar { progress: prog, label: label }
+                        }
+                    } else {
+                        rsx! { div { "Validating lines..." } }
+                    }
                 }
             }
             
@@ -347,6 +458,7 @@ pub fn ScriptEditor(characters: Signal<Vec<Character>>) -> Element {
                     "Script"
                 }
                 textarea {
+                    id: "script-textarea",
                     style: "flex-grow: 1; min-height: 200px; padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 14px; resize: vertical;",
                     placeholder: "Enter your script here...\n\n[Gandalf]: You cannot pass!\n[Frodo]: I wish the ring had never come to me.",
                     value: "{script_text}",

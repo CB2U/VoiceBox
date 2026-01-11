@@ -1,4 +1,5 @@
 {
   "output_directory": "/mnt/Storage/Music/VoiceBox/OutputFiles",
-  "voice_files_directory": "/mnt/Storage/Music/VoiceBox/VoiceRefFiles"
+  "voice_files_directory": "/mnt/Storage/Music/VoiceBox/VoiceRefFiles",
+  "active_project_id": "8578de6a-627b-4a0c-8e3a-ff228ba65e41"
 }

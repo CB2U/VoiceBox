@@ -4,28 +4,39 @@ import os
 import torch
 import soundfile as sf
 try:
-    import chatterbox
+    from chatterbox import ChatterboxTTS
+    from chatterbox.tts_turbo import ChatterboxTurboTTS
 except ImportError:
     print("WARNING: chatterbox module not found. Using Mock implementation.")
     import torch
     
     class MockModel:
-        def __init__(self):
+        def __init__(self, model_name="default"):
             self.sr = 24000
+            self.model_name = model_name
             
-        def generate(self, text, audio_prompt_path):
-            print(f"Mock generating audio for: {text}")
+        def generate(self, text, audio_prompt_path=None, **kwargs):
+            print(f"Mock [{self.model_name}] generating audio for: {text}")
             return torch.zeros(1, 48000)
 
     class MockChatterboxTTS:
         @staticmethod
         def from_pretrained(device):
-            return MockModel()
+            return MockModel("standard")
+
+    class MockChatterboxTurboTTS:
+        @staticmethod
+        def from_pretrained(device):
+            return MockModel("turbo")
 
     class MockChatterbox:
         ChatterboxTTS = MockChatterboxTTS
+        ChatterboxTurboTTS = MockChatterboxTurboTTS
         
     chatterbox = MockChatterbox()
+    # Mocking the imports if they fail
+    ChatterboxTTS = MockChatterboxTTS
+    ChatterboxTurboTTS = MockChatterboxTurboTTS
 
 class SynthesisEngine:
     _instance = None
@@ -44,7 +55,8 @@ class SynthesisEngine:
             print(f"Initializing SynthesisEngine on {device}...")
             
             # Load model
-            self._model = chatterbox.ChatterboxTTS.from_pretrained(device)
+            print(f"Initializing SynthesisEngine using Chatterbox-Turbo (350M)...")
+            self._model = ChatterboxTurboTTS.from_pretrained(device)
             print(f"SynthesisEngine initialized. Sample Rate: {self._model.sr}")
 
     def generate(self, text: str, reference_audio_path: str) -> io.BytesIO:

@@ -19,6 +19,7 @@
 * **BP1 (Core Loop):** Character creation, Audio Import (Local), Text-to-Speech (TTS) connection.
 * **BP2 (Advanced Input):** YouTube Extraction integration.
 * **BP3 (Polish):** Script Editor parsing, Audio Export, UI Polish.
+* **BP4 (Scalability):** Project Workspace isolation, Real-time Progress feedback.
 
 ## Epics
 
@@ -60,6 +61,22 @@
 * **Dependencies:** 1.2
 * **Exit Criteria:** Parsing a 3-line script triggers 3 API calls and sequences the audio.
 * **Target ACs:** AC-5, AC-7
+
+### 3.0 Project Management
+
+* **Goal:** Organize characters and settings by campaign.
+* **Scope:** Project CRUD, automatic migration, file system isolation.
+* **Dependencies:** 1.1, 1.2
+* **Exit Criteria:** User can switch between two projects with distinct character lists.
+* **Target ACs:** AC-9
+
+### 3.1 Progress Indicators
+
+* **Goal:** Provide real-time feedback for long-running tasks.
+* **Scope:** YouTube download progress (SSE), Synthesis progress (frontend loop).
+* **Dependencies:** 2.0, 2.1
+* **Exit Criteria:** Progress bars reach 100% in sync with task completion.
+* **Target ACs:** AC-10, AC-11
 
 ## Post-MVP
 

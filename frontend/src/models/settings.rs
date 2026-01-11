@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 pub struct Settings {
     pub output_directory: String,
     pub voice_files_directory: String,
+    pub active_project_id: Option<String>,
 }
 
 impl Default for Settings {
@@ -11,6 +12,7 @@ impl Default for Settings {
         Settings {
             output_directory: String::from("frontend/data/output"),
             voice_files_directory: String::from("frontend/data/voices"),
+            active_project_id: None,
         }
     }
 }
