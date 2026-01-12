@@ -8,6 +8,7 @@ mod utils;
 use models::character::Character;
 use services::api::{check_backend_health, fetch_characters, backend_save_characters};
 use components::{sidebar::Sidebar, editor::Editor, script_editor::ScriptEditor, settings_panel::SettingsPanel, project_selector::ProjectSelector, audio_post_processing::AudioPostProcessing};
+use models::script::ScriptLine;
 
 #[derive(Clone, Copy, PartialEq)]
 enum Tab {
@@ -18,7 +19,17 @@ enum Tab {
 }
 
 fn main() {
-    dioxus::launch(app);
+    let cfg = dioxus::desktop::Config::new()
+        .with_window(
+            dioxus::desktop::WindowBuilder::new()
+                .with_always_on_top(false)
+                .with_title("VoiceBox")
+        )
+        .with_menu(None);
+    
+    LaunchBuilder::desktop()
+        .with_cfg(cfg)
+        .launch(app);
 }
 
 fn app() -> Element {
@@ -28,6 +39,8 @@ fn app() -> Element {
     let mut active_tab = use_signal(|| Tab::Characters);
     let mut backend_status = use_signal(|| None::<bool>); // None = checking, Some(true) = online, Some(false) = offline
     let mut refresh_trigger = use_signal(|| 0);
+    let script_text = use_signal(|| String::new()); // Removed 'mut'
+    let parsed_lines = use_signal(|| Vec::<ScriptLine>::new()); // Removed 'mut'
 
     // Fetch characters on startup and when project changes
     use_effect(move || {
@@ -191,6 +204,8 @@ fn app() -> Element {
                 if is_script_tab {
                     ScriptEditor {
                         characters: characters,
+                        script_text: script_text,
+                        parsed_lines: parsed_lines,
                     }
                 }
                 

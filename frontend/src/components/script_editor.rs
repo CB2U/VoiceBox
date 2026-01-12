@@ -13,9 +13,11 @@ use std::collections::HashMap;
 use rfd::FileDialog;
 
 #[component]
-pub fn ScriptEditor(characters: Signal<Vec<Character>>) -> Element {
-    let mut script_text = use_signal(|| String::new());
-    let mut parsed_lines = use_signal(|| Vec::<ScriptLine>::new());
+pub fn ScriptEditor(
+    characters: Signal<Vec<Character>>,
+    script_text: Signal<String>,
+    parsed_lines: Signal<Vec<ScriptLine>>,
+) -> Element {
     let mut is_synthesizing = use_signal(|| false);
     let mut synthesis_error = use_signal(|| None::<String>);
     let mut current_line_index = use_signal(|| 0usize);
@@ -354,6 +356,15 @@ pub fn ScriptEditor(characters: Signal<Vec<Character>>) -> Element {
                 }
                 div {
                     style: "display: flex; gap: 10px;",
+                    button {
+                        style: "background-color: #dc3545; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;",
+                        disabled: is_synthesizing(),
+                        onclick: move |_| {
+                            script_text.set(String::new());
+                            parsed_lines.set(Vec::new());
+                        },
+                        "CLEAR"
+                    }
                     button {
                         style: "background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;",
                         disabled: is_synthesizing(),

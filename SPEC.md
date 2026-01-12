@@ -10,12 +10,12 @@ It points to the spec folder for the current work and links to the product docs.
 - Constitution: constitution.md (or .specify/memory/constitution.md)
 
 ## Current focus
-- Roadmap anchor: N/A (Project Audit)
-- Spec folder: specs/009-readme-documentation/
-- Type: Maintenance
+- Roadmap anchor: N/A (Script Editor & UI Fixes)
+- Spec folder: specs/010-script-editor-fixes-and-ui/
+- Type: Bug / UI Change
 - Priority: P0
-- Status: Completed (Audit Done)
-- Next command: /specify "Post-MVP: Waveform Visualization"
+- Status: Completed
+- Next command: N/A
 
 ## Links
 - README Documentation Spec: [spec.md](specs/009-readme-documentation/spec.md)
