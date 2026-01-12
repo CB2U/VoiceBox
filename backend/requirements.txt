@@ -2,3 +2,7 @@ fastapi
 uvicorn
 chatterbox-tts
 yt-dlp
+librosa>=0.10.0
+soundfile>=0.12.0
+pydub>=0.25.0
+numpy>=1.24.0

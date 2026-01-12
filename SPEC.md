@@ -10,16 +10,17 @@ It points to the spec folder for the current work and links to the product docs.
 - Constitution: constitution.md (or .specify/memory/constitution.md)
 
 ## Current focus
-- Roadmap anchor: 3.0, 3.1
-- Spec folder: specs/006-project-management/, specs/007-progress-indicators/
-- Type: Feature, Enhancement
-- Priority: P1, P2
+- Roadmap anchor: 4.0
+- Spec folder: specs/008-audio-post-processing/
+- Type: Feature
+- Priority: P1
 - Status: Completed
-- Next command: cargo run
+- Next command: Manual testing and verification
 
 ## Links
-- Project Mgmt Spec: [spec.md](specs/006-project-management/spec.md)
-- Progress Spec: [spec.md](specs/007-progress-indicators/spec.md)
+- Audio Post-Processing Spec: [spec.md](specs/008-audio-post-processing/spec.md)
+- Audio Post-Processing Plan: [plan.md](specs/008-audio-post-processing/plan.md)
+- Audio Post-Processing Tasks: [tasks.md](specs/008-audio-post-processing/tasks.md)
 
 ## Notes
 - Keep this file short. Do not paste large requirements here.

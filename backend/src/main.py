@@ -3,7 +3,7 @@ from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from .engine import SynthesisEngine
-from .routers import youtube, settings, files, projects, characters, history
+from .routers import youtube, settings, files, projects, characters, history, audio
 from .services.settings_service import DATA_DIR
 from .services.project_service import ProjectService
 
@@ -30,6 +30,7 @@ app.include_router(files.router, tags=["files"])
 app.include_router(projects.router, tags=["projects"])
 app.include_router(characters.router, tags=["characters"])
 app.include_router(history.router, tags=["history"])
+app.include_router(audio.router, tags=["audio"])
 
 class SynthesisRequest(BaseModel):
     text: str

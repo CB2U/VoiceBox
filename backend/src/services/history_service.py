@@ -38,6 +38,14 @@ class HistoryService:
         logger.info(f"Saved history entry: {entry.id}")
         return entry
 
+    def get_history_entry(self, entry_id: str) -> Optional[ScriptHistory]:
+        """Get a specific history entry by ID."""
+        history = self.load_history()
+        for entry in history:
+            if entry.id == entry_id:
+                return entry
+        return None
+
     def update_history_entry(self, entry_id: str, updates: Dict) -> Optional[ScriptHistory]:
         """Update an existing history entry (e.g., rename)."""
         history = self.load_history()

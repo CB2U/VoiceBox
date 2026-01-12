@@ -10,6 +10,7 @@ class ScriptHistory(BaseModel):
     audio_path: str  # Relative to project directory
     created_at: datetime
     character_mappings: Dict[str, str]  # character_name -> character_id
+    processed_from: Optional[str] = None  # ID of original history entry if this is a processed file
 
     @classmethod
     def create(

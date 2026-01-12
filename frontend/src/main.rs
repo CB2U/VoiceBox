@@ -7,12 +7,13 @@ mod utils;
 
 use models::character::Character;
 use services::api::{check_backend_health, fetch_characters, backend_save_characters};
-use components::{sidebar::Sidebar, editor::Editor, script_editor::ScriptEditor, settings_panel::SettingsPanel, project_selector::ProjectSelector};
+use components::{sidebar::Sidebar, editor::Editor, script_editor::ScriptEditor, settings_panel::SettingsPanel, project_selector::ProjectSelector, audio_post_processing::AudioPostProcessing};
 
 #[derive(Clone, Copy, PartialEq)]
 enum Tab {
     Characters,
     ScriptEditor,
+    PostProcessing,
     Settings,
 }
 
@@ -102,12 +103,15 @@ fn app() -> Element {
     let current_tab = active_tab();
     let is_characters_tab = current_tab == Tab::Characters;
     let is_script_tab = current_tab == Tab::ScriptEditor;
+    let is_post_processing_tab = current_tab == Tab::PostProcessing;
     let is_settings_tab = current_tab == Tab::Settings;
     
     let char_tab_bg = if is_characters_tab { "#34495e" } else { "#2c3e50" };
     let char_tab_border = if is_characters_tab { "3px solid #3498db" } else { "none" };
     let script_tab_bg = if is_script_tab { "#34495e" } else { "#2c3e50" };
     let script_tab_border = if is_script_tab { "3px solid #3498db" } else { "none" };
+    let post_processing_tab_bg = if is_post_processing_tab { "#34495e" } else { "#2c3e50" };
+    let post_processing_tab_border = if is_post_processing_tab { "3px solid #3498db" } else { "none" };
     let settings_tab_bg = if is_settings_tab { "#34495e" } else { "#2c3e50" };
     let settings_tab_border = if is_settings_tab { "3px solid #3498db" } else { "none" };
 
@@ -142,6 +146,11 @@ fn app() -> Element {
                     style: "flex: 1; padding: 15px; border: none; background-color: {script_tab_bg}; color: white; cursor: pointer; font-size: 16px; border-bottom: {script_tab_border};",
                     onclick: move |_| active_tab.set(Tab::ScriptEditor),
                     "Script Editor"
+                }
+                button {
+                    style: "flex: 1; padding: 15px; border: none; background-color: {post_processing_tab_bg}; color: white; cursor: pointer; font-size: 16px; border-bottom: {post_processing_tab_border};",
+                    onclick: move |_| active_tab.set(Tab::PostProcessing),
+                    "Post-Processing"
                 }
                 button {
                     style: "flex: 1; padding: 15px; border: none; background-color: {settings_tab_bg}; color: white; cursor: pointer; font-size: 16px; border-bottom: {settings_tab_border};",
@@ -183,6 +192,10 @@ fn app() -> Element {
                     ScriptEditor {
                         characters: characters,
                     }
+                }
+                
+                if is_post_processing_tab {
+                    AudioPostProcessing {}
                 }
                 
                 if is_settings_tab {

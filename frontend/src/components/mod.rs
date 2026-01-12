@@ -8,3 +8,4 @@ pub mod settings_panel;
 pub mod project_selector;
 pub mod progress_bar;
 pub mod script_history;
+pub mod audio_post_processing;

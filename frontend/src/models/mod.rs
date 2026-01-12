@@ -3,3 +3,4 @@ pub mod script;
 pub mod settings;
 pub mod project;
 pub mod history;
+pub mod audio_processing;
