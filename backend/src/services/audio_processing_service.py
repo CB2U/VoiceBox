@@ -1,8 +1,10 @@
 import os
+import subprocess
 import librosa
 import soundfile as sf
 import numpy as np
 from pydub import AudioSegment
+from pedalboard import Pedalboard, PitchShift
 from typing import Tuple, Optional
 import tempfile
 import time
@@ -25,7 +27,7 @@ class AudioProcessingService:
     
     def load_audio_file(self, path: str) -> Tuple[np.ndarray, int]:
         """
-        Load audio file using librosa
+        Load audio file using soundfile to avoid phase cancellation issues
         
         Args:
             path: Path to the audio file
@@ -34,14 +36,21 @@ class AudioProcessingService:
             Tuple of (audio data as numpy array, sample rate)
         """
         try:
-            audio, sr = librosa.load(path, sr=None, mono=True)
+            # Load with soundfile to preserve original quality
+            audio, sr = sf.read(path, dtype='float32')
+            
+            # If stereo, take only the left channel to avoid phase issues
+            # (averaging channels can cause phase cancellation)
+            if len(audio.shape) > 1 and audio.shape[1] > 1:
+                audio = audio[:, 0]  # Take left channel only
+            
             return audio, sr
         except Exception as e:
             raise ValueError(f"Failed to load audio file: {str(e)}")
-    
+
     def apply_pitch_shift(self, audio: np.ndarray, sr: int, semitones: float) -> np.ndarray:
         """
-        Apply pitch shift to audio
+        Apply pitch shift to audio using high-quality algorithm (Pedalboard)
         
         Args:
             audio: Audio data as numpy array
@@ -55,14 +64,28 @@ class AudioProcessingService:
             return audio
         
         try:
-            shifted = librosa.effects.pitch_shift(audio, sr=sr, n_steps=semitones)
-            return shifted
+            # Pedalboard expects (channels, samples)
+            # Our audio is (samples,), so we reshape to (1, samples)
+            audio_input = audio.reshape(1, -1)
+            
+            # Create effect board
+            board = Pedalboard([
+                PitchShift(semitones=semitones)
+            ])
+            
+            # Process
+            shifted = board.process(audio_input, sr)
+            
+            # Flatten back to (samples,)
+            return shifted.flatten()
+            
         except Exception as e:
             raise ValueError(f"Failed to apply pitch shift: {str(e)}")
     
     def apply_speed_change(self, audio: np.ndarray, sr: int, speed_factor: float) -> np.ndarray:
         """
-        Apply speed change to audio (time-stretching, preserves pitch)
+        Apply speed change to audio using FFmpeg's rubberband filter for high quality.
+        (Rubberband preserves pitch and quality much better than phase vocoders)
         
         Args:
             audio: Audio data as numpy array
@@ -75,12 +98,59 @@ class AudioProcessingService:
         if speed_factor == 1.0:
             return audio
         
+        tmp_input = None
+        tmp_output = None
+        
         try:
-            # librosa.effects.time_stretch uses rate parameter (inverse of speed_factor)
-            stretched = librosa.effects.time_stretch(audio, rate=speed_factor)
+            # 1. Create temporary input file
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
+                tmp_input = f.name
+                
+            sf.write(tmp_input, audio, sr)
+            
+            # 2. Prepare output filename
+            tmp_output = tmp_input.replace(".wav", "_out.wav")
+            
+            # 3. Construct FFmpeg command with rubberband filter
+            # Use 'tempo' parameter (Inverse of duration stretch). 
+            # rubberband=tempo=X
+            cmd = [
+                "ffmpeg",
+                "-y",  # Overwrite output
+                "-i", tmp_input,
+                "-af", f"rubberband=tempo={speed_factor}",
+                tmp_output
+            ]
+            
+            # 4. Run FFmpeg
+            subprocess.run(
+                cmd, 
+                check=True, 
+                stdout=subprocess.PIPE, 
+                stderr=subprocess.PIPE
+            )
+            
+            # 5. Read result
+            stretched, _ = sf.read(tmp_output, dtype='float32')
+            
+            # Handle potential stereo output if rubberband added channels (it shouldn't for mono input but safe to check)
+            if len(stretched.shape) > 1 and stretched.shape[1] > 1:
+                stretched = stretched[:, 0]
+                
             return stretched
+            
+        except subprocess.CalledProcessError as e:
+            # Fallback to librosa if FFmpeg/rubberband fails
+            print(f"FFmpeg rubberband failed: {e}. Falling back to librosa.")
+            return librosa.effects.time_stretch(y=audio, rate=speed_factor)
         except Exception as e:
             raise ValueError(f"Failed to apply speed change: {str(e)}")
+        finally:
+            # Cleanup
+            if tmp_input and os.path.exists(tmp_input):
+                os.remove(tmp_input)
+            if tmp_output and os.path.exists(tmp_output):
+                os.remove(tmp_output)
     
     def numpy_to_audio_segment(self, audio: np.ndarray, sr: int) -> AudioSegment:
         """
@@ -93,6 +163,11 @@ class AudioProcessingService:
         Returns:
             AudioSegment object
         """
+        # Normalize audio to prevent clipping
+        max_val = np.abs(audio).max()
+        if max_val > 0:
+            audio = audio / max_val
+        
         # Convert to 16-bit PCM
         audio_int16 = (audio * 32767).astype(np.int16)
         
@@ -229,6 +304,11 @@ class AudioProcessingService:
             audio = self.apply_pitch_shift(audio, sr, pitch_shift)
         if speed_factor != 1.0:
             audio = self.apply_speed_change(audio, sr, speed_factor)
+        
+        # Normalize audio to prevent clipping
+        max_val = np.abs(audio).max()
+        if max_val > 0:
+            audio = audio / max_val
         
         # Save preview file
         preview_filename = f"preview_{int(time.time() * 1000)}.wav"
