@@ -78,6 +78,12 @@
 * **Exit Criteria:** Progress bars reach 100% in sync with task completion.
 * **Target ACs:** AC-10, AC-11
 
+## Maintenance / Unplanned Work
+
+* **README Documentation Update** (P0, Change) - [specs/009-readme-documentation/](../specs/009-readme-documentation/)
+  * Replace generic SDD template with VoiceBox-specific documentation
+  * Add project overview, quick start guide, and architecture documentation
+
 ## Post-MVP
 
 * Waveform visualization.

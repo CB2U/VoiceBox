@@ -10,3 +10,4 @@
 | **3.0** | Project Management  | `specs/006-project-management/` | BP4        | **Completed**   | AC-9       |
 | **3.1** | Progress Indicators | `specs/007-progress-indicators/` | BP4        | **Completed**   | AC-10, AC-11 |
 | **4.0** | Audio Post-Processing | `specs/008-audio-post-processing/` | BP5      | **Completed** | AC-12, AC-13 |
+| **N/A** | README Documentation | `specs/009-readme-documentation/` | Unplanned | **Completed** | AC-U1, AC-U2, AC-U3, AC-U4 |

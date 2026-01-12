@@ -10,17 +10,17 @@ It points to the spec folder for the current work and links to the product docs.
 - Constitution: constitution.md (or .specify/memory/constitution.md)
 
 ## Current focus
-- Roadmap anchor: 4.0
-- Spec folder: specs/008-audio-post-processing/
-- Type: Feature
-- Priority: P1
+- Roadmap anchor: N/A (Unplanned work)
+- Spec folder: specs/009-readme-documentation/
+- Type: Change
+- Priority: P0
 - Status: Completed
-- Next command: Manual testing and verification
+- Next command: N/A
 
 ## Links
-- Audio Post-Processing Spec: [spec.md](specs/008-audio-post-processing/spec.md)
-- Audio Post-Processing Plan: [plan.md](specs/008-audio-post-processing/plan.md)
-- Audio Post-Processing Tasks: [tasks.md](specs/008-audio-post-processing/tasks.md)
+- README Documentation Spec: [spec.md](specs/009-readme-documentation/spec.md)
+- README Documentation Plan: [plan.md](specs/009-readme-documentation/plan.md)
+- README Documentation Tasks: [tasks.md](specs/009-readme-documentation/tasks.md)
 
 ## Notes
 - Keep this file short. Do not paste large requirements here.

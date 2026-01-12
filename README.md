@@ -1,220 +1,106 @@
-# Antigravity SDD Starter
+# VoiceBox
 
-Spec Driven Development starter for Antigravity: 1 rule, 3 workflows, plus Unplanned Intake.
+**VoiceBox** is a local-first desktop application designed for Dungeon Masters and content creators to generate high-quality audio recaps and dialogues using AI voice cloning.
 
-This setup gives you a lightweight, repeatable SDD workflow that stays aligned with your PRD and roadmap while still handling bugs and unplanned work cleanly.
+## What is VoiceBox?
 
-## What you get
+VoiceBox combines a powerful script editor with a local AI synthesis engine. It allows you to create character profiles, associate them with reference audio (either from local files or extracted directly from YouTube), and synthesize complex scripts into high-quality WAV files—all without your data ever leaving your machine.
 
-- **One workspace rule**
-  - `.agent/rules/10-sdd.md`
-- **Three workflows**
-  - `.agent/workflows/specify.md`
-  - `.agent/workflows/implement_from_spec.md`
-  - `.agent/workflows/resume-audit.md`
-- **One entrypoint**
-  - `SPEC.md` (repo root, tells the agent what spec to implement right now)
+Whether you're a DM looking to bring your NPCs to life for a session recap, or a content creator building audio dramas on a budget, VoiceBox provides the tools to manage your "voice library" and produce professional-sounding audio with ease.
 
-## Quick Start (new contributors)
+## Why VoiceBox?
 
-1. Pick a roadmap anchor (example: `1.1`) from `docs/roadmap.md`.
-2. Generate or update the spec package:
-   - `/specify 1.1`
-3. Implement the spec:
-   - `/implement_from_spec`
-4. If you stop for a while or come back later, run:
-   - `/resume-audit`
+Creating immersive audio often requires expensive equipment, professional voice actors, or cloud-based AI services that charge high fees and compromise privacy. For DMs and indie creators, these barriers often make high-quality audio unreachable.
 
-## Install
+VoiceBox exists to bridge this gap by providing:
+- **Privacy Core:** All processing happens locally. Your scripts and voice samples are never uploaded to the cloud.
+- **Integrated Workflow:** From YouTube audio extraction to script parsing and final synthesis, everything is in one app.
+- **Accessibility:** A user-friendly desktop interface for complex CLI tools like Chatterbox and yt-dlp.
 
-Copy these files into your repo. This has been tested in **Workspace** rules only (not Global).
+## Use Cases
 
-### Copy as-is (no edits required)
+### For Dungeon Masters
+- **Session Recaps:** Create immersive audio summaries of your last session featuring the actual voices of key NPCs.
+- **NPC Voice Library:** Build a consistent library of character voices so your players always recognize who is speaking.
+- **Ambient Dialogue:** Generate background conversations between NPCs to play during exploration or social encounters.
 
-- `.agent/rules/10-sdd.md`
-- `.agent/workflows/specify.md`
-- `.agent/workflows/implement_from_spec.md`
-- `.agent/workflows/resume-audit.md`
-- `SPEC.md` (repo root)
+### For Content Creators
+- **Audio Dramas:** Produce high-quality voice acting for your stories without needing a full cast of actors.
+- **Machinima & Animation:** Quickly generate dialogue for your videos with consistent character voices.
+- **Prototyping:** Test out scripts and character interactions with AI voices before committing to final recordings.
 
-### Create these project files (project-specific)
+## Quick Start
 
-Note: prompt templates (PRD/constitution/roadmap/SPECS) are shipped in the starter zip for convenience.
-They are not required to be present in the repo.
+### Prerequisites
+- **Python 3.10+**: Required for the backend synthesis engine.
+- **Rust (Stable)**: Required for the frontend Dioxus application.
+- **System Dependencies**: FFmpeg (for audio processing).
 
-- `docs/PRD.md`
-- `constitution.md`
-  - Optional location if your tooling expects it: `.specify/memory/constitution.md`
-- `docs/roadmap.md`
-- `SPECS.md` (repo root, multi-epic index)
+### Backend Setup
+1. Navigate to the `backend` directory.
+2. Create a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Start the backend:
+   ```bash
+   uvicorn src.main:app --reload
+   ```
+   The backend will be available at `http://localhost:8000`. You can verify it's running by visiting `http://localhost:8000/health`.
 
-## Create the project docs
+### Frontend Setup
+1. Navigate to the `frontend` directory.
+2. Run the application:
+   ```bash
+   cargo run
+   ```
+   The Dioxus desktop window will open once the build is complete.
 
-These docs are the backbone of the workflow. Prompt templates are optional helpers included in the starter zip.
-You do not need to keep a `prompts/` folder in your repo unless you want the templates checked in.
+## Architecture
 
-1. **`docs/PRD.md` (Product Requirements Document)**
-   
-   - The source-of-truth for product goals, scope, and constraints.
-   - Prompt template (included in the starter zip, not required in-repo):
-     - `prompts/PRD-prompt.md`
+VoiceBox follows a decoupled architecture, separating the high-performance Rust frontend from the machine-learning-heavy Python backend.
 
-2. **`constitution.md` (Development constitution)**
-   
-   - Establishes principles, quality bars, and workflow gates.
-   - Use your `docs/PRD.md` as input when generating this.
-   - Prompt template (included in the starter zip, not required in-repo):
-     - `prompts/constitution-prompt.md`
+### Tech Stack
+- **Frontend**: [Dioxus](https://dioxuslabs.com/) (Rust) - For a native, high-performance desktop UI.
+- **Backend**: [FastAPI](https://fastapi.tiangolo.com/) (Python) - Serving as a wrapper for AI synthesis libraries.
+- **AI Engine**: [Chatterbox](https://github.com/lucasnewman/chatterbox) - Local AI voice cloning and synthesis.
+- **Utility Tools**: [yt-dlp](https://github.com/yt-dlp/yt-dlp) and [FFmpeg](https://ffmpeg.org/) - For audio extraction and processing.
 
-3. **`docs/roadmap.md`**
-   
-   - Breaks the PRD into epics (often grouped by breakpoints, milestones, or releases).
-   - Use `docs/PRD.md` + `constitution.md` as inputs.
-   - Prompt template (included in the starter zip, not required in-repo):
-     - `prompts/roadmap-prompt.md`
+### Communication Flow
+1. **User Action**: The User interacts with the Rust UI to manage characters or write scripts.
+2. **HTTP Request**: The Frontend sends an async POST request containing text and reference audio paths to the Backend.
+3. **Inference**: The Python Backend runs the Chatterbox engine, performing GPU/CPU inference to generate audio.
+4. **Response**: The Backend returns the path to the newly synthesized WAV file.
+5. **Playback**: The Frontend updates the UI and provides playback controls for the user.
 
-4. **`SPECS.md` (Spec index, repo root)**
-   
-   - Central index of all specs for the project.
-   - Typically one row per epic/anchor from the roadmap.
-   - Use `docs/PRD.md` + `constitution.md` + `docs/roadmap.md` as inputs.
-   - Prompt template (included in the starter zip, not required in-repo):
-     - `prompts/SPECS-prompt.md`
+## Project Structure
 
-## Usage
-
-### 1) Create or update a spec package (roadmap anchor mode)
-
-Use this when the work maps to an existing roadmap anchor.
-
-- `/specify 4.1`
-
-### 2) Create a spec for unplanned work (intake mode)
-
-Use this when there is no anchor yet (bugs, small changes, chores, etc).
-
-- `/specify "Bug: login crash"`
-- `/specify "Change: tighten validation"`
-- `/specify "Feature: export report CSV"`
-
-### 3) Implement from a spec
-
-Implement the spec currently referenced by `SPEC.md`:
-
-- `/implement_from_spec`
-
-Implement by explicit folder path:
-
-- `/implement_from_spec specs/041-some-feature/`
-
-Implement by roadmap anchor:
-
-- `/implement_from_spec 4.1`
-
-## Naming conventions
-
-### Roadmap anchors to spec folders
-
-A common convention is to map a roadmap anchor like `4.1` to a spec folder like:
-
-- `specs/041-some-feature/`
-
-Typical rules:
-
-- Drop dots from the anchor: `4.1` -> `41`
-- Zero-pad to 3 digits: `41` -> `041`
-- Use a short kebab-case slug: `041-some-feature`
-
-You can apply the same pattern for other anchors:
-
-- `1.1` -> `specs/011-.../`
-- `2.3` -> `specs/023-.../`
-- `10.2` -> `specs/102-.../`
-
-## How Intake mode works
-
-If you run `/specify` without a roadmap anchor, the workflow enters **Intake mode** and will:
-
-- Ask a short set of questions based on the work type (bug, feature, change, chore)
-- Generate a spec package:
-  - `spec.md`
-  - `plan.md`
-  - `tasks.md`
-- Update indexing if present:
-  - `SPEC.md` (sets the current active spec)
-  - `SPECS.md` (adds or updates the spec entry)
-- Optionally add an entry to `docs/roadmap.md` under something like:
-  - `Maintenance / Unplanned work`
-
-## resume-audit workflow
-
-`/resume-audit` is for getting back into a spec cleanly after a pause.
-
-Run it when:
-
-- You have not worked on the spec for a while
-- You were interrupted mid-implementation
-- You switched branches or rebased and want to re-sync context
-- You are unsure what the next actionable step is
-
-Typical outputs include:
-
-- A concise summary of the current spec state
-- A checklist of what is done vs what is still open
-- Any mismatches between `spec.md`, `plan.md`, and `tasks.md`
-- A recommended next action (often: update tasks, then continue implementation)
-
-## Expected structure (example)
-
-```
+```text
 .
-├─ .agent/
-│  ├─ rules/
-│  │  └─ 10-sdd.md
-│  └─ workflows/
-│     ├─ specify.md
-│     ├─ implement_from_spec.md
-│     └─ resume-audit.md
-├─ docs/
-│  ├─ PRD.md
-│  └─ roadmap.md
-├─ specs/
-│  └─ 041-some-feature/
-│     ├─ spec.md
-│     ├─ plan.md
-│     └─ tasks.md
-├─ constitution.md
-├─ SPEC.md
-└─ SPECS.md
+├── backend/            # Python/FastAPI server and AI synthesis logic
+├── frontend/           # Rust/Dioxus desktop application UI
+├── specs/              # Detailed feature specifications and implementation plans
+├── docs/               # Project-wide documentation (PRD, Roadmap, etc.)
+├── SPEC.md             # Current work pointer for the SDD workflow
+├── SPECS.md            # Index of all project specifications
+└── README.md           # This file
 ```
 
-## Migration notes
+- **`backend/`**: Contains the FastAPI application and the integration with Chatterbox.
+- **`frontend/`**: The core desktop UI built with Rust and Dioxus.
+- **`specs/`**: Each subdirectory here represents a specific feature or epic, containing its own `spec.md`, `plan.md`, and `tasks.md`.
+- **`docs/`**: Holds high-level documentation like the **PRD** (Product Requirements Document), the **Roadmap**, and the **Constitution**.
 
-If you already have separate plan and tasks workflows, you can keep them. This starter is designed to replace them.
+## Documentation
 
-For the cleanest UX, remove or rename older workflows so you only see the commands you actually use (typically `/specify` and `/implement_from_spec`, plus `/resume-audit` when needed).
+For more detailed information about the project's requirements, design, and progress, please refer to the following documents:
 
-## Process Flow
-
-```mermaid
-flowchart TD
-  A[Start] --> B{Pick work source}
-
-  B -->|Roadmap anchor| C["/specify 1.1 (anchor)"]
-  B -->|Unplanned work| D["/specify "'Bug: login crash'""]
-
-  C --> E[Create or update spec package]
-  D --> F[Intake questions]
-  F --> E
-
-  E --> G["specs/id-slug/ spec.md + plan.md + tasks.md"]
-  G --> H["Update indexes SPEC.md + SPECS.md (if present)"]
-  H --> I["/implement_from_spec"]
-  I --> J["Implement tasks - Update code + tests"]
-  J --> K["Verify - build/test/manual checks"]
-  K --> L["Update spec package (tasks status, notes, decisions)"]
-  L --> M[Done]
-
-  J --> N["/resume-audit (optional)"]
-  N --> H
-```
+- **[PRD (Product Requirements Document)](docs/PRD.md)**: Detailed product goals, user stories, and functional requirements.
+- **[Roadmap](docs/roadmap.md)**: High-level overview of project breakpoints and epics.
+- **[Project Constitution](docs/constitution.md)**: Core principles, quality bars, and technical non-negotiables.
+- **[Spec Index (SPECS.md)](SPECS.md)**: A complete list of all technical specifications for implemented features.
